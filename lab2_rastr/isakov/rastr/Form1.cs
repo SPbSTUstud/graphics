@@ -43,10 +43,6 @@ namespace rastr
             //DrawLine(e.Graphics, from, to);
             Point p1 = from;
             Point p2 = to;
-            if (p1.Y > p2.Y)
-            {
-                Point p = p1; p1 = p2; p2 = p;
-            }
             
             double delta = (double)(p1.X - p2.X) / (p1.Y - p2.Y);
             DrawLineIteration(e.Graphics, p1, p2, delta);
@@ -90,62 +86,70 @@ namespace rastr
         {
             if (double.IsInfinity(delta) || double.IsNaN(delta))
                 return;
-            delta = Math.Abs(delta);
-            int y = from.Y;
+
             int counter = 0;
             stopwatch.Reset();
             stopwatch.Start();
 
-            
-            if (delta > 1) 
+            if (Math.Abs(delta) >= 1)
             {
-                double frm = from.Y;
-                double t = to.Y;
-                int inc = 1;
+                //x++
+                int x = from.X;
+                int incr = 1;
                 if (from.X > to.X)
                 {
-                    //frm = to.Y;
-                    //t = from.Y;
-                    y = from.X;
-                    inc = -1;
+                    x = to.X;
+                    incr = -1;
                 }
-                for (double i = frm; i <= t; i += 1 / delta)
-                {
-                    e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(y * deltaY, ((int)i) * deltaX), new Size(deltaY, deltaX)));
-                    y += inc;
-                }
-                //e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(y * deltaY, ((int)t) * deltaX), new Size(deltaY, deltaX)));
-                stopwatch.Stop();
-                for (double i = from.Y; i <= to.Y; i += 1 / delta)
-                    counter++;
+
+                if (from.Y - to.Y < 0)
+                    for (double i = from.Y; i <= to.Y; i += 1 / delta)
+                    {
+                        e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(x * deltaY, Trunc(i) * deltaX), new Size(deltaY, deltaX)));                    
+                        x += incr;
+                        counter++;
+                    }   
+                if (from.Y - to.Y > 0)
+                    for (double i = from.Y; i >= to.Y; i += 1 / delta)
+                    {
+                        e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(x * deltaY, Trunc(i) * deltaX), new Size(deltaY, deltaX)));
+                        x += incr;
+                        counter++;
+                    }
+                e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(to.X * deltaY, to.Y * deltaX), new Size(deltaY, deltaX)));
+                e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(from.X * deltaY, from.Y * deltaX), new Size(deltaY, deltaX)));
             }
             else
             {
-                double frm = from.X;
-                double t = to.X;
-                int inc = 1;
-                if (from.X > to.X)
+                //y++
+                int y = from.Y;
+                int incr = 1;
+                if (from.Y > to.Y)
                 {
-                    frm = to.X;
-                    t = from.X;
                     y = to.Y;
-                    inc = -1;
+                    incr = -1;
                 }
-                for (double i = frm; i <= t; i += delta)
-                {
-                    e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(((int)i) * deltaY, (y) * deltaX), new Size(deltaY, deltaX)));
-                    y += inc;
-                }
-                //e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(((int)t) * deltaY, (y) * deltaX), new Size(deltaY, deltaX)));
-                //if (delta <= 0.5)
-                //    e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(((int)t) * deltaY, y * deltaX), new Size(deltaY, deltaX)));
-                stopwatch.Stop();
-                for (double i = from.X; i <= to.X; i += delta)
-                    counter++;
+                if (from.X - to.X < 0)
+                    for (double i = from.X; i <= to.X; i += delta)
+                    {
+                        e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(Trunc(i) * deltaY, y * deltaX), new Size(deltaY, deltaX)));
+                        y += incr;
+                        counter++;
+                    }
+                if (from.X - to.X > 0)
+                    for (double i = from.X; i >= to.X; i += delta)
+                    {
+                        e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(Trunc(i) * deltaY, y * deltaX), new Size(deltaY, deltaX)));
+                        y += incr;
+                        counter++;
+                    }
+                e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(to.X * deltaY, to.Y * deltaX), new Size(deltaY, deltaX)));
+                e.FillRectangle(Brushes.IndianRed, new Rectangle(new Point(from.X * deltaY, from.Y * deltaX), new Size(deltaY, deltaX)));
             }
-            
-                time1 = stopwatch.ElapsedTicks;
-                Console.WriteLine("Iteration: {0} ticks, {1} iterations", time1.Value, counter);
+
+            stopwatch.Stop();
+            time1 = stopwatch.ElapsedTicks;
+            Console.WriteLine("Iteration: {0} ticks, {1} iterations", time1.Value, counter);
             
         }
 
@@ -272,6 +276,12 @@ namespace rastr
             to.Y = yf;
             to2.Y = yf;
             Invalidate();
+        }
+
+        public int Trunc(double x)
+        {
+            int i = (int)x;
+            return x - i < 0.5 ? i : i + 1;
         }
     }
 }
