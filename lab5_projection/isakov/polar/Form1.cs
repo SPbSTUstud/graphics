@@ -12,13 +12,17 @@ namespace polar
 {
     public partial class Form1 : Form
     {
-        private float _centerx = 200;
-        private float _centery = 150;
+        private int _centerx = 200;
+        private int _centery = 150;
         
         public Form1()
         {
             InitializeComponent();
-            World3d.Angle = -135;         
+            World3d.Angle = -135;
+            dataGridView1.Rows.Add(new object[] { 25, 25, 25 });
+            dataGridView1.Rows.Add(new object[] { 55, 55, 55 });
+            dataGridView1.Rows.Add(new object[] { 15, 35, 25 });
+            dataGridView1.Rows.Add(new object[] { 35, 25, 35 });
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -27,10 +31,16 @@ namespace polar
             Draw3dDecart(e.Graphics, _centerx, _centery, 120);
 
             PointF[] points = new PointF[4];
-            points[0] = Draw3dPoint(e.Graphics, 25, 25, 25);
-            points[1] = Draw3dPoint(e.Graphics, 55, 55, 55);
-            points[2] = Draw3dPoint(e.Graphics, 15, 35, 25);
-            points[3] = Draw3dPoint(e.Graphics, 35, 25, 35);
+            //points[0] = Draw3dPoint(e.Graphics, 25, 25, 25);
+            //points[1] = Draw3dPoint(e.Graphics, 55, 55, 55);
+            //points[2] = Draw3dPoint(e.Graphics, 15, 35, 25);
+            //points[3] = Draw3dPoint(e.Graphics, 35, 25, 35);
+
+            points[0] = Draw3dPoint(e.Graphics, dataGridView1.GetXinRow(0), dataGridView1.GetYinRow(0), dataGridView1.GetZinRow(0));
+            points[1] = Draw3dPoint(e.Graphics, dataGridView1.GetXinRow(1), dataGridView1.GetYinRow(1), dataGridView1.GetZinRow(1));
+            points[2] = Draw3dPoint(e.Graphics, dataGridView1.GetXinRow(2), dataGridView1.GetYinRow(2), dataGridView1.GetZinRow(2));
+            points[3] = Draw3dPoint(e.Graphics, dataGridView1.GetXinRow(3), dataGridView1.GetYinRow(3), dataGridView1.GetZinRow(3));
+
 
             Pen p = new Pen(Brushes.Red);
             for(int i = 0; i<4; i++)
@@ -38,17 +48,21 @@ namespace polar
                     e.Graphics.DrawLine(p, points[i], points[j]);
             
             PointF[][] projs = new PointF[4][];
-            projs[0] = Draw3dPointProjections(e.Graphics, 25, 25, 25);
-            projs[1] = Draw3dPointProjections(e.Graphics, 55, 55, 55);
-            projs[2] = Draw3dPointProjections(e.Graphics, 15, 35, 25);
-            projs[3] = Draw3dPointProjections(e.Graphics, 35, 25, 35);
+            projs[0] = Draw3dPointProjections(e.Graphics, dataGridView1.GetXinRow(0), dataGridView1.GetYinRow(0), dataGridView1.GetZinRow(0));
+            projs[1] = Draw3dPointProjections(e.Graphics, dataGridView1.GetXinRow(1), dataGridView1.GetYinRow(1), dataGridView1.GetZinRow(1));
+            projs[2] = Draw3dPointProjections(e.Graphics, dataGridView1.GetXinRow(2), dataGridView1.GetYinRow(2), dataGridView1.GetZinRow(2));
+            projs[3] = Draw3dPointProjections(e.Graphics, dataGridView1.GetXinRow(3), dataGridView1.GetYinRow(3), dataGridView1.GetZinRow(3));
             p = new Pen(Brushes.Maroon);
             for (int i = 0; i < 4; i++)
-                for (int j = i; j < 4; j++)
+                for (int j = i+1; j < 4; j++)
+                    for(int k = j+1; k < 4; k++)
                 {
-                    e.Graphics.DrawLine(p, projs[i][0], projs[j][0]); //xz
-                    e.Graphics.DrawLine(p, projs[i][1], projs[j][1]); //yz
-                    e.Graphics.DrawLine(p, projs[i][2], projs[j][2]); //xy
+                    //e.Graphics.DrawLine(p, projs[i][0], projs[j][0]); //xz
+                    //e.Graphics.DrawLine(p, projs[i][1], projs[j][1]); //yz
+                    //e.Graphics.DrawLine(p, projs[i][2], projs[j][2]); //xy
+                    e.Graphics.FillPolygon(Brushes.Maroon, new PointF[] { projs[i][0], projs[j][0], projs[k][0] });
+                    e.Graphics.FillPolygon(Brushes.Maroon, new PointF[] { projs[i][1], projs[j][1], projs[k][1] });
+                    e.Graphics.FillPolygon(Brushes.Maroon, new PointF[] { projs[i][2], projs[j][2], projs[k][2] });
                 }
             
         }
@@ -76,18 +90,30 @@ namespace polar
             return new PointF(_centerx + point.X, _centery - point.Y);
         }
 
-        public void Draw3dDecart(Graphics g, float x, float y, int size)
+        public void Draw3dDecart(Graphics g, int x, int y, int size)
         {
             Pen p = new Pen(Brushes.DeepSkyBlue);
            
             g.DrawLine(p, x, y, x + size, y);
-            //for(int i=center.X - size; i<center.X + size; i+=10)
-            //    g.DrawLine(p, i, center.Y - 1, i, center.Y + 1);
+            for (int i = x + 10; i < x + size; i += 10)
+                g.DrawLine(p, i, y - 1, i, y + 1);
             g.DrawLine(p, x, y - size, x, y);
+            for (int i = y - size; i < y - 10; i += 10)
+                g.DrawLine(p, x - 1, i, x + 1, i);
             PointF z = CoorHelper.ToDecart(size, World3d.Angle);
             g.DrawLine(p, x, y, x + z.X, y - z.Y);
-            //for (int i = center.Y - size; i < center.Y + size; i+=10)
-            //    g.DrawLine(p, center.X - 1, i, center.X + 1, i);
+
+
+            // p = new Pen(Brushes.Black);
+ 
+            PointF delta = CoorHelper.ToDecart(2, World3d.Angle - 90);
+            PointF step = CoorHelper.ToDecart(10, World3d.Angle);
+            float j = y - step.Y;
+            for (float i = x + step.X; i > x + z.X; i += step.X)
+            {
+                g.DrawLine(p, i - delta.X, j + delta.Y, i + delta.X, j - delta.Y);
+                j -= step.Y;
+            }
         }
 
         
@@ -134,6 +160,11 @@ namespace polar
             //textBox3.Text = p.X.ToString();
             //textBox4.Text = p.Y.ToString();
             //Invalidate();
+        }
+
+        private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            Invalidate();
         }
     }
 }
